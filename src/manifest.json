@@ -1,0 +1,27 @@
+{
+  "name": "posta",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "posta",
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "options_ui": {
+    "page": "../options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches" : [ "http://*/*", "https://*/*" ],
+      "match_about_blank" : true,
+      "js": ["agent.js"],
+      "run_at" : "document_start",
+      "all_frames" : true
+      }
+  ],
+  "permissions": [
+    "https://*/*",
+    "http://*/*",
+    "tabs"
+  ]
+}
