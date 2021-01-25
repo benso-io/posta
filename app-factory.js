@@ -69,7 +69,8 @@ function getCompilerConfig() {
             }),
             new CopyPlugin({
                 patterns: [
-                  { from: "src/manifest.json" }
+                  { from: "src/manifest.json" },
+                  { from: "src/static-files/" }
                 ],
             }),
             new webpack.SourceMapDevToolPlugin({})
