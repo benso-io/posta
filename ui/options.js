@@ -129,14 +129,22 @@ export default class App extends React.Component {
     const { tabs } = this.backgroundPage;
     let tabList = tabs.list();
     const selectedWindow = selectedWindowId ? this.backgroundPage.windowFrames.get(selectedWindowId).get() : null;
-    return <Layout layout={
+    return <>
+    <div className="head">
+      <img src="benso.png"></img>
+      <span className="name">Posta</span>
+      <span>benso.io open source</span>
+      <span className="ref"><a href="https://enso.escurity">by Enso Security</a></span>
+    </div>
+    <div style={{height:"calc(100% - 60px)"}}>
+    <Layout layout={
       [
         {
           w: 30,
           h: 100,
           // {securityOrigin, frameId, listeners, href, children}
           content: <div className="frames">
-            <div className="breadcrumbs">{`All Tabs >`}</div>
+            <div className="title light">Tabs</div>
             <div className="allFrames">
               {tabList.map((topFrame) => {
                 const frame = topFrame.get();
@@ -154,8 +162,8 @@ export default class App extends React.Component {
         {
           w: 35,
           h: 70,
-          content: <div style={{ height: "100%" }}>
-            <h3>Messages sent</h3>
+          content: <div style={{ height: "100%", padding:"10px" }}>
+            <div className="title">Messages</div>
             {selectedWindow ?
               <div className="messages">
                 {(selectedWindow.messages.all.messages).map((message) => {
@@ -187,11 +195,10 @@ export default class App extends React.Component {
           </div>
         },
         {
-          w: 30,
+          w: 35,
           h: 20,
-          content: <div style={{ height: "100%" }}>
-            <h3>Listeners</h3>
-
+          content: <div style={{ height: "100%", padding:"10px" }}>
+            <div className="title">Listeners</div>
             {selectedWindow ? <div className="listeners">
               {selectedWindow.listeners.map((listener, index) => {
                 // let preview = listener && listener.handler ? listener.handler.description : "No preview"
@@ -214,6 +221,7 @@ export default class App extends React.Component {
           h: 15,
           content: <div className="actions">
             {selectedMessage ? <>
+              <div className="origins">
               <div>
                 <strong>From:</strong>
                 <span>{senderWindow.locationHref}</span>
@@ -222,16 +230,18 @@ export default class App extends React.Component {
                 <strong>To:</strong>
                 <span>{receiverWindow.locationHref}</span>
               </div>
+              </div>
+              
               <div className="message-buttons">
                 <button onClick={() => this.sendMessageFromOneFrameToAnother(senderWindow, receiverWindow)}>Replay</button>
                 <button>Simulate exploit</button>
-              </div></> : "Select a frame to see it's listeners"}
+              </div></> : "Select a message"}
           </div>
         }
       ]}
     ></Layout>
-
-    // <div>{JSON.stringify({messagesBucket,tabs},null, " ")}</div>
+    </div>
+    </>
   }
 }
 
