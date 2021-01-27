@@ -1,5 +1,8 @@
 const handlers = new Set();
 
+chrome.browserAction.onClicked.addListener(()=>{
+    chrome.runtime.openOptionsPage();
+})
 
 $$$SubScribeToPosta = (handler) => {
     console.log("new subscription from options page")

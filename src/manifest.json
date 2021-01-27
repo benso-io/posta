@@ -10,6 +10,13 @@
     "page": "../options.html",
     "open_in_tab": true
   },
+  "browser_action": {
+    "default_icon": {         
+      "16": "benso.png",
+      "48": "benso.png",
+      "128": "benso.png"
+    }
+  },
   "icons": { 
     "16": "benso.png",
     "48": "benso.png",
