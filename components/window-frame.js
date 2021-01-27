@@ -1,7 +1,7 @@
 import React from "react";
 export default class WindowFrame extends React.Component {
     onSelect(e) {
-      const { frame, selectFrame } = this.props;
+      const { frame, selectFrame,code } = this.props;
       e.stopPropagation();
       if (typeof(frame.attributes.windowId)==="undefined"){
         return
@@ -9,23 +9,27 @@ export default class WindowFrame extends React.Component {
       selectFrame(frame.id);
     }
     render() {
-      let { frame, order = 0, selectedTabFrameId, selectFrame } = this.props;
+      let { frame, order = 0, selectedTabFrameId, selectFrame, code } = this.props;
       const isSelected = selectedTabFrameId === frame.id;
       if (!frame) return null;
       const {  children } = frame;
       const {locationHref, listeners=[], windowId} = frame.attributes;
       const {  count= 0, sent=0, received = 0} = frame.messages || {};
       let _children = children.list();
-      let fullInjected = typeof(windowId)==="undefined";
+      let fullyInjected = typeof(windowId)==="undefined";
+      let extUrl = chrome.runtime.getURL("exploit.html");
+      extUrl = extUrl+`?target=${btoa(locationHref)}&code=${btoa(code)}`
       // console.log(messages,children, locationHref, listeners)
       return <div className={`window-frame ${
-          fullInjected ? 'unselectable ':''
+          fullyInjected ? 'unselectable ':''
           }order-${order}${
             isSelected ? ' selected' : ''
             }`} onClick={(e) => this.onSelect(e)} tabIndex="-1">
-          <div className="href">{locationHref}</div>
+          <div className="href">{locationHref}
+            <a className="link" target="_blank" href={extUrl}>host</a>
+          </div>
           <div className="stats">
-            { fullInjected  ? 
+            { fullyInjected  ? 
               <span className="dead">Not fully injected</span>:
              <>
              <span className="children-count"><strong>{children.length}</strong> children </span>
@@ -39,6 +43,7 @@ export default class WindowFrame extends React.Component {
           </div>
           {_children.length ? <div className="children">
             {_children.map((frame,index) => <WindowFrame
+                code={code}
               key={index}
               frame={frame}
               selectFrame={selectFrame}
