@@ -1,9 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./options.scss"
-import Editor from "./components/editor";
-import WindowFrame from "./components/window-frame" ;
-import Layout from './components/layout'
+import Editor from "../components/editor";
+import WindowFrame from "../components/window-frame" ;
+import Layout from '../components/layout';
+import Header from '../components/header';
+
 
 export default class App extends React.Component {
   constructor(...args) {
@@ -144,13 +146,9 @@ export default class App extends React.Component {
       messages = selectedFrame.messages.messages || messages;
       listeners = selectedFrame.attributes.listeners || listeners;
     }    
+    let code = this.editorSession ? this.editorSession.getValue() : "";
     return <>
-    <div className="head">
-      <img src="benso.png"></img>
-      <span className="name">Posta</span>
-      <span>benso.io open source</span>
-      <span className="ref"><a href="https://enso.security">by Enso Security</a></span>
-    </div>
+    <Header></Header>
     <div style={{height:"calc(100% - 60px)"}}>
     <Layout layout={
       [
@@ -163,6 +161,7 @@ export default class App extends React.Component {
               {tabList.map((frame,index) => {
                 const { id } = frame;
                 return <div key={index} className="tab"><WindowFrame
+                code={code}
                   selectedTabFrameId={selectedTabFrameId}
                   selectFrame={(selectedTabFrameId) => this.selectFrame(selectedTabFrameId)}
                   frame={frame}>
