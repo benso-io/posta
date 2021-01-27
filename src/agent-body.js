@@ -11,13 +11,7 @@ module.exports = function agent() {
         });
     }
 
-    const sendToPosta = (body) => {
-        if (!body) return console.trace("no sending without body")
-        var event = new CustomEvent("posta-telemetry", { detail: body });
-        window.dispatchEvent(event);
-    }
-
-    const frameTree = (frameId = "root", refWindow = window, path = "window.top") => {
+    const frameTree = (frameId = "root", refWindow = window, path = []) => {
         if (frameId !== "root") {
             refWindow.postMessage({
                 isPostaMessage: true,
@@ -27,62 +21,63 @@ module.exports = function agent() {
             }, "*")
         }
         let childWindowsIds = Object.keys(refWindow.frames).slice(0, Object.keys(refWindow.frames).findIndex((v) => v === "window")).map(Number)
-        return {
-            path,
-            frameId,
-            children: childWindowsIds.map(id => frameTree(id, refWindow[id], `${path}.frames[${id}]`))
-        }
+        childWindowsIds.forEach(id => frameTree(id, refWindow[id], path.concat(id)))
     }
 
+    const sendToBackgroundPage = (body) => {
+        if (!body) return console.trace("no sending without body")
+        var event = new CustomEvent("posta-telemetry", { detail: body });
+        window.dispatchEvent(event);
+    }
+
+    window.addEventListener("posta-relay", event=>{
+        let {
+            data,
+            dispatchTo=[]
+        } = event.detail
+        let ref = window.top;
+        while (dispatchTo.length) {
+            let frameIndex = dispatchTo.shift();
+            ref = ref.frames[frameIndex];
+        }
+        ref.postMessage(data,"*");
+    })
+
     const sendWindowTelemetry = () => {
-        sendToPosta({
-            topic: "window-telemetry",
+        sendToBackgroundPage({
+            topic: "listeners",
             windowId,
-            locationHref: window.location.href,
             listeners: Array.from($$$listeners).map(i => i.toString())
         })
-        if (window.top === window) sendToPosta({
-            topic: "frame-tree",
-            frameTree: frameTree(),
-            windowId
-        })
-        setTimeout(sendWindowTelemetry, 1 * 3000)
+        if (window.top === window) frameTree();
+        
+        setTimeout(sendWindowTelemetry, 3 * 1000)
     }
     sendWindowTelemetry();
 
     const hub = (...args) => {
         const [event] = args;
-        const { data, source } = event;
+        const { data, origin, source } = event;
         if (data.isPostaMessage) {
             let { topic } = data;
             switch (topic) {
                 case "account-for-message":
                     let { messageId } = data;
-                    sendToPosta({
+                    sendToBackgroundPage({
                         topic,
                         windowId,
                         messageId
                     })
                     break;
                 case "account-for-path":
-                    let { path, topWindowId } = data;
-                    sendToPosta({
-                        topic,
-                        windowId,
-                        topWindowId,
-                        path
-                    })
-                    break;
-                case "replay-message":
-                    let { to, data: _data } = data;
-                    let [top, ...paths] = to.split(".frames[");
-                    paths = paths.map(p => Number(p.split("]")[0]));
-                    let ref = window.top;
-                    while (paths.length) {
-                        let index = paths.shift();
-                        ref = ref.frames[index];
-                    }
-                    ref.postMessage(_data, "*");
+                        let { path, topWindowId } = data;
+                        sendToBackgroundPage({
+                            topic,
+                            windowId,
+                            topWindowId,
+                            path
+                        })
+                        break;
                 default:
                     break;
             }
@@ -94,14 +89,22 @@ module.exports = function agent() {
             topic: "account-for-message",
             messageId
         }, "*");
-        sendToPosta({
+        
+        sendToBackgroundPage({
             topic: "received-message",
+            origin,
             messageId,
             windowId,
             data
         })
 
-        $$$listeners.forEach(l => l(...args));
+        $$$listeners.forEach(l => {
+            try {
+                l(...args)
+            } catch (error) {
+                
+            }
+        });
     }
 
     $$$_addEventListener("message", hub);
@@ -121,7 +124,9 @@ module.exports = function agent() {
                 const [type, listener, options] = args;
                 if (type === "message") {
                     console.trace(`new event listener ${window.windowId}`);
-                    return $$$listeners.add(listener)
+                    $$$listeners.add(listener)
+                    sendWindowTelemetry();
+                    return 
                 }
                 $$$_addEventListener(...args);
             },
