@@ -1,242 +1,257 @@
 const handlers = new Set();
 
+
 $$$SubScribeToPosta = (handler) => {
     console.log("new subscription from options page")
     handlers.add(handler);
 }
 
+var timer;
+
 function refreshOptionsPage() {
-    try {
-        Array.from(handlers).forEach(h=>h())
-    } catch (error) {
-        console.log(error)
-    }
+    clearTimeout(timer)
+    timer = setTimeout(()=>{
+        try {
+            Array.from(handlers).forEach(h => h())
+        } catch (error) {
+            console.log(error)
+        }
+    },100)
+    
 }
 
 
 class Bucket {
     constructor(ItemConstructor) {
         this.ItemConstructor = ItemConstructor;
-        this._bucket = []
+        this._bucket = {}
     }
-    add (id) {
-        const {ItemConstructor} = this;
+    add(id) {
+        const { ItemConstructor } = this;
         if (!this._bucket[id]) this._bucket[id] = new ItemConstructor(id);
         return this._bucket[id]
     }
-    get (id) {
+    set(id, item){
+        this._bucket[id] = item;
+        return this._bucket[id];
+    }
+    get(id) {
         return this._bucket[id] || {
-            get:()=>({}),
-            set:()=>({get:()=>{}})
+            get: () => ({}),
+            set: () => ({ get: () => { } })
         };
     }
-    list(decay=10*1000){
-        return Object.keys(this._bucket).map(k=>this._bucket[k]).filter(i=>!decay || !i.isDecayed(decay))
+    list(decay = 10 * 1000) {
+        return Object.keys(this._bucket).map(k => this._bucket[k])
+        // .filter(i => !decay || !i.isDecayed(decay))
     }
 }
 
 class Item {
-    constructor (id){
+    constructor(id) {
         this.attributes = {};
         this.id = id;
         this.touch(true);
     }
-    touch(modify){
+    touch(modify) {
         this._json = modify ? undefined : this._json;
         this.lastSeen = Date.now();
         if (modify) refreshOptionsPage();
     }
-    set(key,value) {
+    set(key, value) {
         this.touch(this.attributes[key] !== value);
         this.attributes[key] = value;
         return this;
     }
 
-    isDecayed (decay){
+    isDecayed(decay) {
         return false
         if (decay && ((this.lastSeen + decay) < Date.now())) return true
     }
 
-    json(){
+    json() {
         this._json = this._json || this.get();
         return this._json;
     }
 
-    get(){
-        return this.attributes;
-    }
-}
-
-class Tab extends Item {
-    get (){
-        let {id,frameTree={}} = this;
+    get() {
         return {
-            ...frameTree,
-            ...windowFrames.get(id).set("framePath", "window.top").get()
-        }
-    }
-
-    accountForPath(path, windowId) {
-        let [top,...paths] = path.split(".frames[");
-        paths = paths.map(p=>Number(p.split("]")[0]));
-        let ref = this.frameTree;
-        while (paths.length) {
-            let index = paths.shift();
-            ref=ref.children[index];
-        }
-        if (!ref) return
-        let _windowFrame =  windowFrames.get(windowId).set("framePath", path).get();
-        var hasChanges = false;
-        Object.keys(_windowFrame).forEach((key)=>{
-            if (_windowFrame[key] !== ref[key]) {
-                ref[key] = _windowFrame[key];
-                hasChanges = true;
-            }
-        })
-
-        this.touch(hasChanges);
-        return this
-    }
-
-    isNewTree(oldTree,newTree){
-        return oldTree && newTree && (oldTree.path === newTree.path) &&
-            (oldTree.windowId === newTree.windowId) &&
-                oldTree.children.reduce((res, treeNode,treeNodeIndex)=>{
-                    if (!res) return false
-                    return this.isNewTree(treeNode, newTree[treeNodeIndex])
-                },true) ? false : true
-    }
-
-    setFrameTree(newFrameTree){
-        let isNewTree = this.isNewTree(this.frameTree, newFrameTree)
-        if (isNewTree) {
-            this.frameTree = newFrameTree;
-            this.touch(true);
-        }
-        return this;
+            id:this.id,
+            ...this.attributes
+        };
     }
 }
 
-class WindowFrame extends Item {
-    constructor(id){
-        super(id);
-        this.messages = {
-            all:{
-                messages: [],
-                count: 0
-            },
-            sent:{
-                messages: [],
-                count: 0
-            }, 
-            received: {
-                count:0,
-                messages: []
-            }
-        }
+class TabFrame extends Item {
+    constructor(tabFrameId) {
+        super(tabFrameId);
+        this.children = new Bucket(TabFrame)
+        this.set("listeners", []);
     }
 
-    addMessage(bucket, message){
-        this.messages.all.count++;
-        this.messages.all.messages.unshift(message);
-        this.messages.all.messages = this.messages.all.messages.slice(0,100);//to avoid denial of service
-        this.messages[bucket].count++;
-        this.messages[bucket].messages.unshift(message);
-        this.messages[bucket].messages = this.messages[bucket].messages.slice(0,100);//to avoid denial of service
+    addChild(child) {
+        return this.children.set(child.id,child);
+    }
+
+    get windowId(){
+        return windowsByTabAndFrameId.get(this.id).id
+    }
+
+    get messages (){
+        return messageByTabFrameId.get(this.id).messages || {
+            messages: [],
+            sent:0,
+            count: 0,
+            received:0
+        };
+    }
+
+    get () {
+        const {children,id} = this;
+        return {
+            ...super.get(),
+            ...windowsByTabAndFrameId.get(id).get(),
+            children: children.list()
+        }
+    }
+}
+
+class MessagesBucket extends Item {
+    constructor(windowId) {
+        super(windowId);
+        this.messages = {
+            messages: [],
+            sent:0,
+            count: 0,
+            received:0
+        }
+    }
+    
+    addMessage(messageId,counter) {
+        if(this.messages.messages.indexOf(messageId) !== -1) return
+        this.messages[counter]++;
+        this.messages.count++;
+        this.messages.messages.unshift(messageId);
+        this.messages.messages = this.messages.messages.slice(0, 100);//to avoid denial of service
+        this.messages.messages = Array.from(this.messages.messages)
         this.touch(true)
         refreshOptionsPage()
+
     }
 
-    addMessageReceived(message){
-        this.addMessage("received", message);
-        return this;
-    }
-    addMessageSent(message){
-        this.addMessage("sent", message);
-    }
-    get (){
-        let {sent={messages:[],count:[0]},all={messages:[],count:[0]},received={messages:[],count:[0]}}= this.messages;
+    get() {
         return {
-            windowId:this.id,
-            messages:{
-                sent,
-                received,
-                all,
-            },
-            ...super.get()
-        }
+                ...this.messages,
+                messages: this.messages.map(m=>messagesByMessageId.get(m).get())
+            }
     }
 }
 
-tabs = new Bucket(Tab);
-windowFrames = new Bucket(WindowFrame);
-messages = new Bucket(Item);
-// this.windowFrames = windowFrames;
-// this.tabs = tabs;
 
+windowsByTabAndFrameId = new Bucket(TabFrame);
+messagesByMessageId  = new Bucket(Item);
+messageByTabFrameId  = new Bucket(MessagesBucket);
 
-const receivedMessage = ({messageId, windowId, data})=>{
-    let message = messages.add(messageId)
-        .set("data",data)
-        .set("receiver",windowId);
-    windowFrames.add(windowId).addMessageReceived(message);
-    // sendToOptionsPage("message-received", {
-    //         data,
-    //         receiver: windowId,
-    //         messageId
-    //     })
+tabsFrames = new Bucket(TabFrame);
+
+const receivedMessage = ({ messageId, data, origin },tabId, frameId) => {
+    let tabWindowId = `${tabId}::${frameId}`;
+    messageByTabFrameId.add(tabWindowId)
+        .addMessage(messageId,"received")
+    
+    messagesByMessageId.add(messageId)
+        .set("receiver", tabWindowId)
+        .set("origin",origin)
+        .set("data", data);
 }
 
-const accountForMessage = ({windowId,messageId})=>{
-    let message = messages.add(messageId).set("sender",windowId);
-    windowFrames.add(windowId).addMessageSent(message);
+const accountForMessage = ({ messageId },tabId, frameId) => {
+    let tabWindowId = `${tabId}::${frameId}`;
+    messageByTabFrameId.add(tabWindowId)
+        .addMessage(messageId,"sent")
+    
+    messagesByMessageId.add(messageId)
+        .set("sender", tabWindowId);
 }
 
-const windowTelemetry = (message)=>{
-    const {windowId,locationHref,listeners} = message;
-    windowFrames.add(windowId)
-        .set("locationHref",locationHref)
-        .set("listeners",listeners);
+const listeners = (message, tabId, frameId) => {
+    const { listeners, windowId  } = message;
+    windowsByTabAndFrameId.add(`${tabId}::${frameId}`).set("listeners",listeners).set("windowId", windowId)
 }
-
-const frameTree = (message)=>{
-    const {frameTree,windowId} = message;
-    tabs.add(windowId).setFrameTree(frameTree);
-}
-
-const accountForPath = ({windowId,topWindowId,path})=>{
-    tabs.add(topWindowId).accountForPath(path, windowId);
-}
-
-
 
 const topicHandlers = {
     "received-message":receivedMessage,
-    "window-telemetry":windowTelemetry,
     "account-for-message":accountForMessage,
-    "account-for-path":accountForPath,
-    "frame-tree": frameTree
+    listeners,
+    "account-for-path": (message, tabId, frameId)=>{
+        let tabWindowId = `${tabId}::${frameId}`;
+        let {path} =message;
+        windowsByTabAndFrameId.add(tabWindowId).set("path",path);
+    }
 }
 
 
-const processIncomingMessage = (message) => {
+const processIncomingMessage = (message, tabId,frameId) => {
     let { topic } = message;
-    if (!topicHandlers[topic]) return console.log(`TODO: handel ${topic}`)
-    topicHandlers[topic](message)
+    if (!topicHandlers[topic]) return console.log(`TODO: handel ${topic} from ${tabId}:${frameId}`)
+    topicHandlers[topic](message, tabId,frameId)
 }
 
-chrome.runtime.onConnect.addListener(function (port) {
-    port.onMessage.addListener((message) => {
-        if (!message) console.trace("empty message");
-        try {
-            processIncomingMessage(message)
-        } catch (error) {
-            console.log(error)
-        }
+chrome.runtime.onMessage.addListener((message, sender, response) => {
+    const { 
+        frameId,
+        tab: {
+            id
+        } } = sender
 
-    })
-});
-
-chrome.tabs.onUpdated.addListener(()=>{
-    tabs = new Bucket(Tab);
+    if (!message) console.trace("empty message");
+    try {
+        processIncomingMessage(message, id, frameId)
+    } catch (error) {
+        console.log(error)
+    }
 })
+
+
+
+const updateTabs = () => {
+    chrome.tabs.query({}, (allTabs) => {
+        let targetTabs = allTabs.filter(({ url }) => !url.startsWith("chrome"));
+        Promise.all(
+            targetTabs.map(({ id: tabId }) => new Promise((resolve, reject) => {
+                chrome.webNavigation.getAllFrames({ tabId }, (frames) => resolve({
+                    tabId,
+                    frames
+                }))
+            }))
+
+        ).then((updatedTabs) => {
+            tabsFrames = new Bucket(TabFrame);
+            updatedTabs.forEach(({ tabId, frames }) => {
+                let topFrameIndex = frames.findIndex(({parentFrameId})=>parentFrameId===-1);
+                var [{frameId,url}] = frames.splice(topFrameIndex,1);
+                let tabFrameId = `${tabId}::${frameId}`;
+                var top =  new TabFrame(tabFrameId);
+                
+                top.set("locationHref", url);
+                windowsByTabAndFrameId.set(tabFrameId,top);
+                tabsFrames.set(tabFrameId, top)
+                frames.forEach(frame => {
+                    const {
+                        frameId,
+                        parentFrameId,
+                        url
+                    } = frame;
+                    let tabFrameId = `${tabId}::${frameId}`;
+                    let parentTabFrameId = `${tabId}::${parentFrameId}`;
+                    let windowFrame = windowsByTabAndFrameId.add(tabFrameId).set("locationHref", url);
+                    let parentWindowFrame = windowsByTabAndFrameId.add(parentTabFrameId);
+                    parentWindowFrame.addChild(windowFrame);
+                })
+            })
+        })
+    })
+}
+
+chrome.webNavigation.onDOMContentLoaded.addListener(updateTabs)
+chrome.webNavigation.onCommitted.addListener(updateTabs)
