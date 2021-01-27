@@ -92,6 +92,10 @@ $purple: #501D98;
           border-radius: 5px;
         }
         .window-frame {
+          cursor: pointer;
+          &.unselectable{
+            cursor: initial;
+          }
           background-color:$darkBlue;
           outline: none;
           .href {
@@ -107,11 +111,6 @@ $purple: #501D98;
             padding-left: 10px;
             padding-right: 10px;
             color: #000000;
-            &.dead {
-              color: #E51400;
-              border-color: $purple;
-              border-radius: 5px;
-            }
           }
           border-radius: 8px;
           &.selected>div.stats {
@@ -140,6 +139,11 @@ $purple: #501D98;
               border-top-width: 1px;
               border-bottom-right-radius: 5px ;
               border-bottom-left-radius: 5px ;
+              .dead {
+                color: #E51400;
+                border-color: $purple;
+                border-radius: 5px;
+              }
               // align-items: center;
             }
           

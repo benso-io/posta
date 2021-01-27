@@ -28,37 +28,51 @@ class Layout extends React.Component {
 
 class WindowFrame extends React.Component {
   onSelect(e) {
-    const { frame, selectWindow } = this.props;
+    const { frame, selectFrame } = this.props;
     e.stopPropagation();
-    selectWindow(frame.windowId);
+    if (typeof(frame.attributes.windowId)==="undefined"){
+      return
+    }
+    selectFrame(frame.id);
   }
   render() {
-    let { frame, order = 0, selectWindow, selectedWindowId } = this.props;
-    const isSelected = selectedWindowId && (selectedWindowId === frame.windowId);
+    let { frame, order = 0, selectedTabFrameId, selectFrame } = this.props;
+    const isSelected = selectedTabFrameId === frame.id;
     if (!frame) return null;
-    const { locationHref, children = [], listeners = [], messages = {}, windowId } = frame;
-    const { sent = { count: 0, messages: [] }, received = { count: 0, messages: [] } } = messages
-    return windowId ?
-      <div className={`window-frame order-${order}${isSelected ? ' selected' : ''}`} onClick={(e) => this.onSelect(e)} tabIndex="-1">
+    const {  children } = frame;
+    const {locationHref, listeners=[], windowId} = frame.attributes;
+    const {  count= 0, sent=0, received = 0} = frame.messages || {};
+    let _children = children.list();
+    let fullInjected = typeof(windowId)==="undefined";
+    // console.log(messages,children, locationHref, listeners)
+    return <div className={`window-frame ${
+        fullInjected ? 'unselectable ':''
+        }order-${order}${
+          isSelected ? ' selected' : ''
+          }`} onClick={(e) => this.onSelect(e)} tabIndex="-1">
         <div className="href">{locationHref}</div>
         <div className="stats">
-          <span className="children-count"><strong>{children.length}</strong> children </span>
+          { fullInjected  ? 
+            <span className="dead">Not fully injected</span>:
+           <>
+           <span className="children-count"><strong>{children.length}</strong> children </span>
           <span className="listeners-count"><strong>{listeners.length}</strong> listeners</span>
           <span className="messages-count"><strong>
-            <span className="sent">&uarr;{sent.count}</span>
+            <span className="sent">&uarr;{sent}</span>
             <span className="separator">/</span>
-            <span className="received">&darr;{received.count}</span>
+            <span className="received">&darr;{received}</span>
           </strong> messages
-          </span>
+          </span></>}
         </div>
-        {children.length ? <div className="children">
-          {children.map((frame) => <WindowFrame
-            key={frame.windowId} frame={frame} selectWindow={selectWindow} selectedWindowId={selectedWindowId} order={order + 1}></WindowFrame>)}
+        {_children.length ? <div className="children">
+          {_children.map((frame,index) => <WindowFrame
+            key={index}
+            frame={frame}
+            selectFrame={selectFrame}
+            selectedTabFrameId={selectedTabFrameId}
+            order={order + 1}></WindowFrame>)}
         </div> : null}
-      </div> :
-      <div className={`window-frame unselectable order-${order}${isSelected ? ' selected' : ''}`}>
-        <div className="href dead">Not fully injected - maybe an html data-uri frame?</div>
-      </div>
+      </div> 
   }
 }
 
@@ -73,9 +87,10 @@ export default class App extends React.Component {
     this.editorSession = session;
   }
 
-  selectMessage(selectedMessage) {
-    let message = selectedMessage.json();
-    let { data, receiver, sender } = message;
+  selectMessage(messageId) {
+    const { messagesByMessageId,windowsByTabAndFrameId } = this.backgroundPage;
+    // let message = selectedMessage.json();
+    let { data, receiver, sender } = messagesByMessageId.get(messageId).get();
     switch (typeof (data)) {
       case "object":
         data = JSON.stringify(data, null, " ")
@@ -91,50 +106,103 @@ export default class App extends React.Component {
         break;
     }
     if (this.editorSession) this.editorSession.setValue(data)
-    const receiverWindow = this.backgroundPage.windowFrames.get(receiver).get();
-    const senderWindow = this.backgroundPage.windowFrames.get(sender).get();
-    this.setState({ selectedMessage, receiverWindow, senderWindow })
+    const receiverWindow = windowsByTabAndFrameId.get(receiver);
+    const senderWindow = sender ? windowsByTabAndFrameId.get(sender) : null;
+    // const receiverWindow = this.backgroundPage.windowFrames.get(receiver).get();
+    // const senderWindow = this.backgroundPage.windowFrames.get(sender).get();
+    this.setState({ selectedMessage:messageId, receiverWindow, senderWindow })
   }
 
   sendMessageFromOneFrameToAnother(from, to) {
-    // let data = this.editorSession.getValue();
-    // let [top, ...paths] = from.framePath.split(".frames[");
-    // paths = paths.map(p => Number(p.split("]")[0]));
-    // let ref = window.top;
-    // console.log(ref)
-    // while (paths.length) {
-    //   let index = paths.shift();
-    //   ref = ref.frames[index];
-    // }
-    
-    // ref.postMessage({
-    //   isPostaMessage: true,
-    //   to: to.framePath,
-    //   data
-    // }, "*")
+    let data = this.editorSession.getValue();
+    const [fromTabId,fromFrameId] = from.id.split("::");
+      chrome.tabs.sendMessage(
+        Number(fromTabId),
+        {
+          dispatchTo:to.attributes.path,
+          data
+        },
+        {frameId:Number(fromFrameId)})
   }
 
   get backgroundPage() {
     return chrome.extension.getBackgroundPage();
   }
 
-  selectWindow(selectedWindowId) {
+  selectFrame(selectedTabFrameId) {
+
     this.setState({
-      selectedWindowId,
+      selectedTabFrameId
     })
   }
 
+  renderMessages (selectedFrame){
+    const { selectedTabFrameId, selectedMessage, receiverWindow, senderWindow } = (this.state || {});
+    const { tabsFrames,windowsByTabAndFrameId ,messagesByMessageId} = this.backgroundPage;
+    var messages =[];
+    var listeners= [];
+    if (selectedFrame){
+      messages = selectedFrame.messages.messages || messages;
+      listeners = selectedFrame.attributes.listeners || listeners;
+    }    
+    return <>
+    <div className="title">Messages</div>
+    {selectedFrame ?
+    <div className="messages">
+        {messages.map((messageId, index) => {
+          const { data, receiver, sender, origin } = messagesByMessageId.get(messageId).get();
+          const receiverWindow = windowsByTabAndFrameId.get(receiver);
+          const senderWindow = sender ? windowsByTabAndFrameId.get(sender) : null;
+
+          // const receiverWindow = this.backgroundPage.tabs.get(selectedTabId).windowFrames.get(receiver);
+          // const senderWindow = this.backgroundPage.tabs.get(selectedTabId).windowFrames.get(sender);
+          let senderHref = (senderWindow 
+            && senderWindow.attributes
+            && senderWindow.attributes.locationHref) ? 
+            senderWindow.attributes.locationHref : `origin: ${origin}`
+          
+          let receiverHref = receiverWindow.attributes ? receiverWindow.attributes.locationHref : "?";
+          const isIncoming = receiverWindow.id === selectedFrame.id;
+          let remote = isIncoming ? senderHref : receiverHref
+          return <div
+            tabIndex="-1"
+            onClick={() => this.selectMessage(messageId)}
+            className={`message${selectedMessage === messageId ? ' selected' : ''}`} key={index}>
+            <div>
+              <span style={{ fontSize: "1.4em", paddingRight: "8px" }}>
+                {isIncoming ?
+                  <strong>&darr;</strong> :
+                  <strong>&uarr;</strong>
+                }
+              </span>
+              <span>{typeof data === "string" ? data : JSON.stringify(data)}</span>
+              <div className="remote">{isIncoming ? 'from: ' : " to: "}{remote}</div>
+            </div>
+
+          </div>
+        })}
+      </div>
+       : "Select a frame to see its messages"}
+       </>
+  }
+
   render() {
-    const { selectedWindowId, selectedMessage, receiverWindow, senderWindow } = (this.state || {});
-    const { tabs } = this.backgroundPage;
-    let tabList = tabs.list();
-    const selectedWindow = selectedWindowId ? this.backgroundPage.windowFrames.get(selectedWindowId).get() : null;
+    const { selectedTabFrameId, selectedMessage, receiverWindow, senderWindow } = (this.state || {});
+    const { tabsFrames,windowsByTabAndFrameId ,messagesByMessageId} = this.backgroundPage;
+    let tabList = tabsFrames.list();
+    const selectedFrame = typeof(selectedTabFrameId)!=="undefined" ? windowsByTabAndFrameId.get(selectedTabFrameId) : null;
+    var messages =[];
+    var listeners= [];
+    if (selectedFrame){
+      messages = selectedFrame.messages.messages || messages;
+      listeners = selectedFrame.attributes.listeners || listeners;
+    }    
     return <>
     <div className="head">
       <img src="benso.png"></img>
       <span className="name">Posta</span>
       <span>benso.io open source</span>
-      <span className="ref"><a href="https://enso.escurity">by Enso Security</a></span>
+      <span className="ref"><a href="https://enso.security">by Enso Security</a></span>
     </div>
     <div style={{height:"calc(100% - 60px)"}}>
     <Layout layout={
@@ -146,13 +214,11 @@ export default class App extends React.Component {
           content: <div className="frames">
             <div className="title light">Tabs</div>
             <div className="allFrames">
-              {tabList.map((topFrame) => {
-                const frame = topFrame.get();
-                const { windowId } = frame;
-                return <div key={windowId} className="tab"><WindowFrame
-                  selectedWindowId={selectedWindowId}
-                  selectWindow={(windowId) => this.selectWindow(windowId)}
-                  key={windowId}
+              {tabList.map((frame,index) => {
+                const { id } = frame;
+                return <div key={index} className="tab"><WindowFrame
+                  selectedTabFrameId={selectedTabFrameId}
+                  selectFrame={(selectedTabFrameId) => this.selectFrame(selectedTabFrameId)}
                   frame={frame}>
                 </WindowFrame></div>
               })}
@@ -162,50 +228,20 @@ export default class App extends React.Component {
         {
           w: 35,
           h: 70,
-          content: <div style={{ height: "100%", padding:"10px" }}>
-            <div className="title">Messages</div>
-            {selectedWindow ?
-              <div className="messages">
-                {(selectedWindow.messages.all.messages).map((message) => {
-                  const { data, receiver, sender } = message.get();
-                  const receiverWindow = this.backgroundPage.windowFrames.get(receiver).get();
-                  const senderWindow = this.backgroundPage.windowFrames.get(sender).get();
-                  let remote = receiverWindow.windowId === selectedWindow.windowId ?
-                    senderWindow.locationHref :
-                    receiverWindow.locationHref;
-                  const isIncoming = receiverWindow.windowId === selectedWindow.windowId;
-                  return <div
-                    tabIndex="-1"
-                    onClick={() => this.selectMessage(message)}
-                    className={`message${selectedMessage === message ? ' selected' : ''}`} key={message.id}>
-                    <div>
-                      <span style={{ fontSize: "1.4em", paddingRight: "8px" }}>
-                        {isIncoming ?
-                          <strong>&darr;</strong> :
-                          <strong>&uarr;</strong>
-                        }
-                      </span>
-                      <span>{typeof data === "string" ? data : JSON.stringify(data)}</span>
-                      <div className="remote">{isIncoming ? 'from: ' : " to: "}{remote}</div>
-                    </div>
-
-                  </div>
-                })}
-              </div> : "Select a frame to see its messages"}
-          </div>
+          content: <div style={{ height: "100%", padding:"10px" }}>{this.renderMessages(selectedFrame)}</div>
         },
         {
           w: 35,
           h: 20,
           content: <div style={{ height: "100%", padding:"10px" }}>
             <div className="title">Listeners</div>
-            {selectedWindow ? <div className="listeners">
-              {selectedWindow.listeners.map((listener, index) => {
-                // let preview = listener && listener.handler ? listener.handler.description : "No preview"
-                // preview = preview || "No preview";
+            {selectedFrame ? 
+            <div className="listeners">
+              {listeners.map((listener, index) => {
                 return <div className="listener" key={index}>{listener}</div>
               })
-              }</div> : "Select a frame to see it's listeners"}
+              }</div> 
+              : "Select a frame to see it's listeners"}
           </div>
         },
         {
@@ -224,18 +260,19 @@ export default class App extends React.Component {
               <div className="origins">
               <div>
                 <strong>From:</strong>
-                <span>{senderWindow.locationHref}</span>
+                <span>{senderWindow && senderWindow.attributes ? senderWindow.attributes.locationHref : "~~posta not injected~~"}</span>
               </div>
               <div>
                 <strong>To:</strong>
-                <span>{receiverWindow.locationHref}</span>
+                <span>{receiverWindow.attributes.locationHref}</span>
               </div>
               </div>
               
-              <div className="message-buttons">
+              <div className="message-buttons" >
                 <button onClick={() => this.sendMessageFromOneFrameToAnother(senderWindow, receiverWindow)}>Replay</button>
-                <button>Simulate exploit</button>
-              </div></> : "Select a message"}
+                {/* <button>Simulate exploit</button> */}
+              </div></> : "Select a message"
+              }
           </div>
         }
       ]}
