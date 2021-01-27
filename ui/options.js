@@ -177,7 +177,7 @@ export default class App extends React.Component {
         },
         {
           w: 35,
-          h: 20,
+          h: 30,
           content: <div style={{ height: "100%", padding:"10px" }}>
             <div className="title">Listeners</div>
             {selectedFrame ? 
