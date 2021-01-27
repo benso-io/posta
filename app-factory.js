@@ -14,6 +14,7 @@ function getCompilerConfig() {
             options: join(__dirname, "ui/options.js"),
             agent: join(__dirname, "src/agent.js"),
             background: join(__dirname, "src/background.js"),
+            exploit:join(__dirname, "exploit/exploit.js"),
         },
         output: {
             filename: '[name].js',
@@ -66,6 +67,11 @@ function getCompilerConfig() {
                 chunks: ["options"],
                 template: "ui/options.ejs",
                 filename: 'options.html'
+            }),
+            new HtmlWebpackPlugin({
+                chunks: ["exploit"],
+                template: "exploit/exploit.ejs",
+                filename: 'exploit.html'
             }),
             new CopyPlugin({
                 patterns: [
