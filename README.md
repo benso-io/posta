@@ -60,9 +60,9 @@ The *Listeners* area presents the code which is in charge of handling the commun
 <img src="./images/listeners.png" alt="Listeners"></p>
 
 ## Console
-At the console sections, we can modify the original postMessage traffic, and replay the messages with the tampered values which will get sent from the Origin to it's Iframe.
+In the console section, we can modify the original `postMessage` traffic, and replay the messages with the tampered values which will be sent from the Origin to its iframe.
 
-We should make tests and see if we can affect the behaviour of the website by changing the postMessage content, If we manage to do so, It's time to try and exploit if from different origin, by Clicking the "Simulate exploit"
+We should make tests and see if we can affect the behavior of the website by changing the `postMessage` content. If we manage to do so, it's time to try and exploit if from a different Origin, by clicking "Simulate exploit".
 
 <p align="center"><img src="./images/console.png" alt="Console">
 <img src="./images/buttons.png" alt="Buttons"></p>
@@ -70,11 +70,11 @@ We should make tests and see if we can affect the behaviour of the website by ch
 
 ## Exploit
 
-At the exploit page, Posta will try and host the specified origin as Iframe to initiate postMessage communication, Most of the time we won't be able to do so due to X-Frame-Options enabled on the origin website.
+In the *Exploit* section, Posta will try and host the specified origin as an iframe in order to initiate `postMessage` communication. Most of the time we won't be able to do so, due to X-Frame-Options being enabled on the origin website.
 
-Therefore, In order to continue with our exploitation we will need to gain communication referance with our origin by initiating the window.open method, which is being done by clicking on "Open as tab"
+Therefore, in order to continue with our exploitation, we'll need to gain communication reference with our Origin by initiating the `window.open` method, which can be achieved by clicking on **"Open as tab"**.
 
-We have the console to our right which will help us modify and craft our specified payloads and test them in Cross Origin Communication, initiated by clicking on the "Exploit" Button.
+We have the console to our right which will help us modify and craft our specified payloads and test them in Cross-Origin Communication, initiated by clicking on the **Exploit** button.
 
 <p align="center"><img src="./images/exploit_content.png" alt="Exploit Content"></p>
 
