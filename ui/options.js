@@ -1,81 +1,9 @@
-import React, { Component } from "react";
+import React from "react";
 import ReactDOM from "react-dom";
 import "./options.scss"
-import Editor from "./editor";
-
-class Layout extends React.Component {
-  render() {
-    const { layout } = this.props;
-    return <div className="layout">{layout.map(
-      ({ w, h, name, content }, index) => (
-        <div
-          className={`content-block-${name}`}
-          key={index}
-          style={{
-            width: `${w || 30}%`,
-            height: `${h || 20}%`,
-          }}>
-          <div className="block">
-            <div className="content">
-              {content}
-            </div>
-          </div>
-        </div>
-      )
-    )}</div>
-  }
-}
-
-class WindowFrame extends React.Component {
-  onSelect(e) {
-    const { frame, selectFrame } = this.props;
-    e.stopPropagation();
-    if (typeof(frame.attributes.windowId)==="undefined"){
-      return
-    }
-    selectFrame(frame.id);
-  }
-  render() {
-    let { frame, order = 0, selectedTabFrameId, selectFrame } = this.props;
-    const isSelected = selectedTabFrameId === frame.id;
-    if (!frame) return null;
-    const {  children } = frame;
-    const {locationHref, listeners=[], windowId} = frame.attributes;
-    const {  count= 0, sent=0, received = 0} = frame.messages || {};
-    let _children = children.list();
-    let fullInjected = typeof(windowId)==="undefined";
-    // console.log(messages,children, locationHref, listeners)
-    return <div className={`window-frame ${
-        fullInjected ? 'unselectable ':''
-        }order-${order}${
-          isSelected ? ' selected' : ''
-          }`} onClick={(e) => this.onSelect(e)} tabIndex="-1">
-        <div className="href">{locationHref}</div>
-        <div className="stats">
-          { fullInjected  ? 
-            <span className="dead">Not fully injected</span>:
-           <>
-           <span className="children-count"><strong>{children.length}</strong> children </span>
-          <span className="listeners-count"><strong>{listeners.length}</strong> listeners</span>
-          <span className="messages-count"><strong>
-            <span className="sent">&uarr;{sent}</span>
-            <span className="separator">/</span>
-            <span className="received">&darr;{received}</span>
-          </strong> messages
-          </span></>}
-        </div>
-        {_children.length ? <div className="children">
-          {_children.map((frame,index) => <WindowFrame
-            key={index}
-            frame={frame}
-            selectFrame={selectFrame}
-            selectedTabFrameId={selectedTabFrameId}
-            order={order + 1}></WindowFrame>)}
-        </div> : null}
-      </div> 
-  }
-}
-
+import Editor from "./components/editor";
+import WindowFrame from "./components/window-frame" ;
+import Layout from './components/layout'
 
 export default class App extends React.Component {
   constructor(...args) {
@@ -89,7 +17,6 @@ export default class App extends React.Component {
 
   selectMessage(messageId) {
     const { messagesByMessageId,windowsByTabAndFrameId } = this.backgroundPage;
-    // let message = selectedMessage.json();
     let { data, receiver, sender } = messagesByMessageId.get(messageId).get();
     switch (typeof (data)) {
       case "object":
@@ -108,8 +35,6 @@ export default class App extends React.Component {
     if (this.editorSession) this.editorSession.setValue(data)
     const receiverWindow = windowsByTabAndFrameId.get(receiver);
     const senderWindow = sender ? windowsByTabAndFrameId.get(sender) : null;
-    // const receiverWindow = this.backgroundPage.windowFrames.get(receiver).get();
-    // const senderWindow = this.backgroundPage.windowFrames.get(sender).get();
     this.setState({ selectedMessage:messageId, receiverWindow, senderWindow })
   }
 
@@ -137,10 +62,12 @@ export default class App extends React.Component {
   }
 
   renderMessages (selectedFrame){
-    const { selectedTabFrameId, selectedMessage, receiverWindow, senderWindow } = (this.state || {});
-    const { tabsFrames,windowsByTabAndFrameId ,messagesByMessageId} = this.backgroundPage;
+    const { selectedMessage } = (this.state || {});
+    const { windowsByTabAndFrameId ,messagesByMessageId} = this.backgroundPage;
+
     var messages =[];
     var listeners= [];
+    
     if (selectedFrame){
       messages = selectedFrame.messages.messages || messages;
       listeners = selectedFrame.attributes.listeners || listeners;
@@ -153,17 +80,17 @@ export default class App extends React.Component {
           const { data, receiver, sender, origin } = messagesByMessageId.get(messageId).get();
           const receiverWindow = windowsByTabAndFrameId.get(receiver);
           const senderWindow = sender ? windowsByTabAndFrameId.get(sender) : null;
-
-          // const receiverWindow = this.backgroundPage.tabs.get(selectedTabId).windowFrames.get(receiver);
-          // const senderWindow = this.backgroundPage.tabs.get(selectedTabId).windowFrames.get(sender);
+          
           let senderHref = (senderWindow 
             && senderWindow.attributes
             && senderWindow.attributes.locationHref) ? 
             senderWindow.attributes.locationHref : `origin: ${origin}`
           
           let receiverHref = receiverWindow.attributes ? receiverWindow.attributes.locationHref : "?";
+
           const isIncoming = receiverWindow.id === selectedFrame.id;
           let remote = isIncoming ? senderHref : receiverHref
+
           return <div
             tabIndex="-1"
             onClick={() => this.selectMessage(messageId)}
@@ -210,7 +137,6 @@ export default class App extends React.Component {
         {
           w: 30,
           h: 100,
-          // {securityOrigin, frameId, listeners, href, children}
           content: <div className="frames">
             <div className="title light">Tabs</div>
             <div className="allFrames">
@@ -249,7 +175,6 @@ export default class App extends React.Component {
           h: 85,
           content: <div style={{ maxHeight: "100%", backgroundColor: "#000000", height: "100%" }}>
             <Editor style={{ height: "100%", width: "100%" }} onMount={(session) => this.captureEditorSession(session)}></Editor>
-            {/* <div>{JSON.stringify({ messagesBucket }, null, " ")}</div> */}
           </div>
         },
         {
