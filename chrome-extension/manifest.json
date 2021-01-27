@@ -27,6 +27,7 @@
   "permissions": [
     "https://*/*",
     "http://*/*",
-    "tabs"
+    "tabs",
+    "webNavigation"
   ]
 }
