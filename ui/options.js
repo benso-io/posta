@@ -113,8 +113,28 @@ export default class App extends React.Component {
        </>
   }
 
+  renderActions (){
+    const { selectedMessage, receiverWindow, senderWindow } = (this.state || {});
+    return selectedMessage ? <>
+      <div className="origins">
+      <div>
+        <strong>From:</strong>
+        <span>{senderWindow && senderWindow.attributes ? senderWindow.attributes.locationHref : "~~posta not injected~~"}</span>
+      </div>
+      <div>
+        <strong>To:</strong>
+        <span>{receiverWindow.attributes.locationHref}</span>
+      </div>
+      </div>
+      
+      <div className="message-buttons" >
+        <button onClick={() => this.sendMessageFromOneFrameToAnother(senderWindow, receiverWindow)}>Replay</button>
+        <button>Simulate exploit</button>
+      </div></> : "Select a message"
+  }
+
   render() {
-    const { selectedTabFrameId, selectedMessage, receiverWindow, senderWindow } = (this.state || {});
+    const { selectedTabFrameId } = (this.state || {});
     const { tabsFrames,windowsByTabAndFrameId ,messagesByMessageId} = this.backgroundPage;
     let tabList = tabsFrames.list();
     const selectedFrame = typeof(selectedTabFrameId)!=="undefined" ? windowsByTabAndFrameId.get(selectedTabFrameId) : null;
@@ -181,23 +201,7 @@ export default class App extends React.Component {
           w: 35,
           h: 15,
           content: <div className="actions">
-            {selectedMessage ? <>
-              <div className="origins">
-              <div>
-                <strong>From:</strong>
-                <span>{senderWindow && senderWindow.attributes ? senderWindow.attributes.locationHref : "~~posta not injected~~"}</span>
-              </div>
-              <div>
-                <strong>To:</strong>
-                <span>{receiverWindow.attributes.locationHref}</span>
-              </div>
-              </div>
-              
-              <div className="message-buttons" >
-                <button onClick={() => this.sendMessageFromOneFrameToAnother(senderWindow, receiverWindow)}>Replay</button>
-                {/* <button>Simulate exploit</button> */}
-              </div></> : "Select a message"
-              }
+            {this.renderActions()}
           </div>
         }
       ]}
