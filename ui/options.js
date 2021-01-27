@@ -64,6 +64,7 @@ export default class App extends React.Component {
   }
 
   renderMessages (selectedFrame){
+    
     const { selectedMessage } = (this.state || {});
     const { windowsByTabAndFrameId ,messagesByMessageId} = this.backgroundPage;
 
@@ -115,10 +116,41 @@ export default class App extends React.Component {
        </>
   }
 
+  sendToSelectFrame(){
+    const { windowsByTabAndFrameId} = this.backgroundPage;
+    const { selectedTabFrameId } = (this.state || {});
+    const selectedFrame = typeof(selectedTabFrameId)!=="undefined" ? windowsByTabAndFrameId.get(selectedTabFrameId) : null;
+    console.log(selectedFrame)
+    if (selectedFrame) {
+      let data = this.editorSession.getValue();
+      const [tabId] = selectedFrame.id.split("::");
+      chrome.tabs.sendMessage(
+        Number(tabId),
+        {
+          dispatchTo:selectedFrame.attributes.path,
+          data
+        },
+        {frameId:0}) 
+    }
+  }
+
   renderActions (){
+    const { windowsByTabAndFrameId} = this.backgroundPage;
+    const { selectedTabFrameId, code } = (this.state || {});
+    const selectedFrame = typeof(selectedTabFrameId)!=="undefined" ? windowsByTabAndFrameId.get(selectedTabFrameId) : null;
     const { selectedMessage, receiverWindow, senderWindow } = (this.state || {});
-    return selectedMessage ? <>
-      <div className="origins">
+    let replayBtn = selectedFrame ? <button onClick={() => this.sendToSelectFrame()}>Send to selected</button> :
+      <button>Send to selected</button>;
+
+    let openExploitPageBtn = selectedFrame ?
+      <button><a 
+        style={{textDecoration:"none", color: "#250D47"}}
+        target="_blank"
+        href={`${chrome.runtime.getURL("exploit.html")}?target=${btoa(selectedFrame.attributes.locationHref)}&code=${btoa(code)}`}>open exploit page</a></button>
+    : null;
+    return <>
+      {
+        selectedMessage ? <div className="origins">
       <div>
         <strong>From:</strong>
         <span>{senderWindow && senderWindow.attributes ? senderWindow.attributes.locationHref : "~~posta not injected~~"}</span>
@@ -127,12 +159,12 @@ export default class App extends React.Component {
         <strong>To:</strong>
         <span>{receiverWindow.attributes.locationHref}</span>
       </div>
-      </div>
-      
-      <div className="message-buttons" >
-        <button onClick={() => this.sendMessageFromOneFrameToAnother(senderWindow, receiverWindow)}>Replay</button>
-        <button>Simulate exploit</button>
-      </div></> : "Select a message"
+      </div> :null}
+      { selectedFrame ? <div className="message-buttons" >
+        {replayBtn}
+        {openExploitPageBtn}
+      </div> : null}
+      </>
   }
 
   render() {

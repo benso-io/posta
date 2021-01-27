@@ -21,6 +21,10 @@ $purple: #501D98;
     font-family:  'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
   }
   
+button {
+  cursor: pointer;
+}
+
   #root {
       height: 100vh;
       max-height: 100vh;
