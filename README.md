@@ -4,7 +4,7 @@
 
 **Posta** is a tool for researching `postMessage` communication. It allows you to track, explore and exploit `postMessage` vulnerabilities, and includes features such as replaying messages sent between windows within any attached browser.
 
-![main_page](./images/main_page.png)
+<p align="center"><img src="./images/main_page.png" alt="Main Page"></p>
 
 ## Prerequisites
 * Google Chrome / Chromium
@@ -49,22 +49,23 @@ Run Posta in full dev environment with dedicated browser (Chromium)
 In the **Tabs** section we can find our main Origin, with the iframes it hosts and communicates with through the session.
 We can choose the specific frame by clicking on it, and observe the postMessages related to that frame only.
 
-![tabs](./images/tabs.png)
+<p align="center"><img width="500" src="./images/tabs.png" alt="Tabs"></p>
 
 ## Messages
 In the *Messages* section, we can inspect all `postMessage` traffic being sent from the origin to its iframes, and vice versa.
 We can select specific communication for further examination by clicking on it.
-The 8Listeners* area presents the code which is in charge of handling the communication, we can click and copy its contents for JS code observation.
+The *Listeners* area presents the code which is in charge of handling the communication, we can click and copy its contents for JS code observation.
 
-![messages](./images/messages.png)
-![listener](./images/listeners.png)
+<p align="center"><img src="./images/messages.png" alt="Messages">
+<img src="./images/listeners.png" alt="Listeners"></p>
 
 ## Console
 At the console sections, we can modify the original postMessage traffic, and replay the messages with the tampered values which will get sent from the Origin to it's Iframe.
 
 We should make tests and see if we can affect the behaviour of the website by changing the postMessage content, If we manage to do so, It's time to try and exploit if from different origin, by Clicking the "Simulate exploit"
 
-![console](./images/console.png)
+<p align="center"><img src="./images/console.png" alt="Console">
+<img src="./images/buttons.png" alt="Buttons"></p>
 
 
 ## Exploit
@@ -75,7 +76,7 @@ Therefore, In order to continue with our exploitation we will need to gain commu
 
 We have the console to our right which will help us modify and craft our specified payloads and test them in Cross Origin Communication, initiated by clicking on the "Exploit" Button.
 
-![exploit_content](./images/exploit_content.png)
+<p align="center"><img src="./images/exploit_content.png" alt="Exploit Content"></p>
 
 # Authors
 - Chen Gour Arie
