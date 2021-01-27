@@ -14,9 +14,9 @@
 
 ### Development Environment
 
-Run Posta in full dev environment with dedicated browser (Chromium)
+Run *Posta* in a full development environment with a dedicated browser (Chromium):
 
-1. Install Posta
+1. Install *Posta*
    ```bash
    git clone https://github.com/benso-io/posta
    cd posta
@@ -30,7 +30,7 @@ Run Posta in full dev environment with dedicated browser (Chromium)
 
 ### Chrome Extension
 
-#### Run Posta as a Chrome / Chromium Extension
+Run *Posta* as a Chrome / Chromium Extension:
 
 1. Clone the repo:
    ```bash
@@ -39,7 +39,7 @@ Run Posta in full dev environment with dedicated browser (Chromium)
 1. Navigate to `chrome://extensions`
 1. Make sure **Developer mode** is enabled
 1. Click on **Load unpacked**
-1. Choose the `chrome-extension` directory inside Posta and upload it to your browser
+1. Choose the `chrome-extension` directory inside *Posta* and upload it to your browser
 1. Load the extension
 1. Pin the extension to your browser
 1. Browse to the website you would like to examine
@@ -70,7 +70,7 @@ We should make tests and see if we can affect the behavior of the website by cha
 
 ## Exploit
 
-In the *Exploit* section, Posta will try and host the specified origin as an iframe in order to initiate `postMessage` communication. Most of the time we won't be able to do so, due to X-Frame-Options being enabled on the origin website.
+In the *Exploit* section, *Posta* will try and host the specified origin as an iframe in order to initiate `postMessage` communication. Most of the time we won't be able to do so, due to X-Frame-Options being enabled on the origin website.
 
 Therefore, in order to continue with our exploitation, we'll need to gain communication reference with our Origin by initiating the `window.open` method, which can be achieved by clicking on **"Open as tab"**.
 
