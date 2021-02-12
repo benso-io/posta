@@ -70,6 +70,10 @@ We should make tests and see if we can affect the behavior of the website by cha
 
 ## Exploit
 
+Click on the "host" button inorder to navigate to the exploitation window.
+
+<p align="center"><img src="./images/host.png" alt="Host">
+
 In the *Exploit* section, *Posta* will try and host the specified origin as an iframe in order to initiate `postMessage` communication. Most of the time we won't be able to do so, due to X-Frame-Options being enabled on the origin website.
 
 Therefore, in order to continue with our exploitation, we'll need to gain communication reference with our Origin by initiating the `window.open` method, which can be achieved by clicking on **"Open as tab"**.
