@@ -80,7 +80,7 @@ Therefore, in order to continue with our exploitation, we'll need to gain commun
 
 We have the console to our right which will help us modify and craft our specified payloads and test them in Cross-Origin Communication, initiated by clicking on the **Exploit** button.
 
-<p align="center"><img src="./images/exploit_content.png" alt="Exploit Content"></p>
+<p align="center"><img src="./images/exploit_area.png" alt="Exploit Content"></p>
 
 # Authors
 - Chen Gour Arie
