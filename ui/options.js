@@ -87,7 +87,6 @@ ${beautify(listener,{
   }
 
   selectFrame(selectedTabFrameId) {
-
     this.setState({
       selectedTabFrameId
     })
@@ -163,19 +162,25 @@ ${beautify(listener,{
     }
   }
 
+  openExploitPage(){
+    const { windowsByTabAndFrameId} = this.backgroundPage;
+    const { selectedTabFrameId } = (this.state || {});
+    const selectedFrame = typeof(selectedTabFrameId)!=="undefined" ? windowsByTabAndFrameId.get(selectedTabFrameId) : null;
+    const code = this.editorSession ? this.editorSession.getValue() : "";
+    window.open(`${chrome.runtime.getURL("exploit.html")}?target=${encode(selectedFrame.attributes.locationHref)}&code=${encode(code)}`)
+  }
+
   renderActions (){
     const { windowsByTabAndFrameId} = this.backgroundPage;
-    const { selectedTabFrameId, code } = (this.state || {});
+    const { selectedTabFrameId } = (this.state || {});
+    const code = this.editorSession ? this.editorSession.getValue() : "";
     const selectedFrame = typeof(selectedTabFrameId)!=="undefined" ? windowsByTabAndFrameId.get(selectedTabFrameId) : null;
     const { selectedMessage, receiverWindow, senderWindow } = (this.state || {});
     let replayBtn = selectedFrame ? <button onClick={() => this.sendToSelectedFrame()}>Send to selected</button> :
       <button>Send to selected</button>;
 
     let openExploitPageBtn = selectedFrame ?
-      <button><a 
-        style={{textDecoration:"none", color: "#250D47"}}
-        target="_blank"
-        href={`${chrome.runtime.getURL("exploit.html")}?target=${encode(selectedFrame.attributes.locationHref)}&code=${encode(code)}`}>open exploit page</a></button>
+      <button onClick={()=>this.openExploitPage()}>open exploit page</button>
     : null;
     return <>
       {
