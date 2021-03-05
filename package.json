@@ -1,13 +1,14 @@
 {
   "name": "posta",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.1.0",
+  "description": "Cross-document messaging security research tool",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node posta.js"
   },
-  "author": "enso.security",
+  "homepage": "https://github.com/benso-io/posta",
+  "author": "https://enso.security",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.8.6",
