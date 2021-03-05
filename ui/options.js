@@ -6,6 +6,8 @@ import WindowFrame from "../components/window-frame" ;
 import Layout from '../components/layout';
 import Header from '../components/header';
 
+var beautify = require('js-beautify').js;
+
 
 export default class App extends React.Component {
   constructor(...args) {
@@ -20,9 +22,14 @@ export default class App extends React.Component {
   selectMessage(messageId) {
     const { messagesByMessageId,windowsByTabAndFrameId } = this.backgroundPage;
     let { data, receiver, sender } = messagesByMessageId.get(messageId).get();
+    let mode = {
+      v: Date.now(),
+      path: "ace/mode/json"
+    }
     switch (typeof (data)) {
       case "object":
         data = JSON.stringify(data, null, " ")
+
         break;
       case "string":
         try {
@@ -34,22 +41,45 @@ export default class App extends React.Component {
         data = data.toString()
         break;
     }
-    if (this.editorSession) this.editorSession.setValue(data)
+    if (this.editorSession) {
+      this.editorSession.setValue(data);
+      this.editorSession.setMode(mode);
+    }
     const receiverWindow = windowsByTabAndFrameId.get(receiver);
     const senderWindow = sender ? windowsByTabAndFrameId.get(sender) : null;
     this.setState({ selectedMessage:messageId, receiverWindow, senderWindow })
   }
 
-  sendMessageFromOneFrameToAnother(from, to) {
-    let data = this.editorSession.getValue();
-    const [fromTabId,fromFrameId] = from.id.split("::");
-      chrome.tabs.sendMessage(
-        Number(fromTabId),
-        {
-          dispatchTo:to.attributes.path,
-          data
-        },
-        {frameId:Number(fromFrameId)})
+  
+
+  selectListener(listener, selectedFrame){
+    if (this.editorSession) {
+      let code =`// Listener on ${selectedFrame.attributes.locationHref}
+${beautify(listener,{
+        "indent_size": "4",
+        "indent_char": " ",
+        "max_preserve_newlines": "2",
+        "preserve_newlines": true,
+        "keep_array_indentation": false,
+        "break_chained_methods": false,
+        "indent_scripts": "separate",
+        "brace_style": "expand",
+        "space_before_conditional": true,
+        "unescape_strings": true,
+        "jslint_happy": true,
+        "end_with_newline": false,
+        "wrap_line_length": "40",
+        "indent_inner_html": true,
+        "comma_first": false,
+        "e4x": false,
+        "indent_empty_lines": true
+      })}
+      `
+      this.editorSession.setValue(code);
+      this.editorSession.setMode({
+        path: "ace/mode/javascript",
+        v: Date.now()})
+    }
   }
 
   get backgroundPage() {
@@ -116,11 +146,10 @@ export default class App extends React.Component {
        </>
   }
 
-  sendToSelectFrame(){
+  sendToSelectedFrame(){
     const { windowsByTabAndFrameId} = this.backgroundPage;
     const { selectedTabFrameId } = (this.state || {});
     const selectedFrame = typeof(selectedTabFrameId)!=="undefined" ? windowsByTabAndFrameId.get(selectedTabFrameId) : null;
-    console.log(selectedFrame)
     if (selectedFrame) {
       let data = this.editorSession.getValue();
       const [tabId] = selectedFrame.id.split("::");
@@ -139,7 +168,7 @@ export default class App extends React.Component {
     const { selectedTabFrameId, code } = (this.state || {});
     const selectedFrame = typeof(selectedTabFrameId)!=="undefined" ? windowsByTabAndFrameId.get(selectedTabFrameId) : null;
     const { selectedMessage, receiverWindow, senderWindow } = (this.state || {});
-    let replayBtn = selectedFrame ? <button onClick={() => this.sendToSelectFrame()}>Send to selected</button> :
+    let replayBtn = selectedFrame ? <button onClick={() => this.sendToSelectedFrame()}>Send to selected</button> :
       <button>Send to selected</button>;
 
     let openExploitPageBtn = selectedFrame ?
@@ -215,7 +244,7 @@ export default class App extends React.Component {
             {selectedFrame ? 
             <div className="listeners">
               {listeners.map((listener, index) => {
-                return <div className="listener" key={index}>{listener}</div>
+                return <div onClick={()=>this.selectListener(listener,selectedFrame)} className="listener" key={index}>{listener}</div>
               })
               }</div> 
               : "Select a frame to see it's listeners"}
