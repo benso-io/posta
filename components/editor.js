@@ -1,14 +1,12 @@
 import React from "react";
 import { v4 as uuidv4 } from 'uuid';
-// import "ace-builds/src-noconflict/ace"
 
-var ace = require('ace-builds/src-noconflict/ace')
-ace.config.set('basePath', "/node_modules/ace-builds/src-noconflict/");
-var merbivore_soft = require('ace-builds/src-noconflict/theme-merbivore_soft');
-// var {Mode} = require('ace-builds/src-noconflict/mode-json');
-// console.log(Mode)
-// var ace = require('ace-builds');
-
+const ace = require('ace-builds');
+ace.config.setModuleUrl('ace/mode/javascript', require('file-loader?name=ace-[name].[ext]&esModule=false!ace-builds/src-noconflict/mode-javascript.js'));
+ace.config.setModuleUrl('ace/mode/json', require('file-loader?name=ace-[name].[ext]&esModule=false!ace-builds/src-noconflict/mode-json.js'));
+ace.config.setModuleUrl('ace/theme/merbivore_soft', require('file-loader?name=ace-[name].[ext]&esModule=false!ace-builds/src-noconflict/theme-merbivore_soft.js'))
+ace.config.setModuleUrl('ace/mode/javascript_worker', require('file-loader?name=ace-[name].[ext]&esModule=false!ace-builds/src-noconflict/worker-javascript.js'))
+ace.config.setModuleUrl('ace/mode/json_worker', require('file-loader?name=ace-[name].[ext]&esModule=false!ace-builds/src-noconflict/worker-json.js'))
 export default class Editor extends React.Component {
     constructor() {
         super()
@@ -17,16 +15,12 @@ export default class Editor extends React.Component {
     componentDidMount() {
         const {save=()=>{}, onMount=()=>{} }=this.props;
         this.editor = ace.edit(this.id, {
-            showGutter:false,
+            showGutter:true,
             showFoldWidgets: true,
-            
             fontSize: "12pt"
         });
-        this.editor.setTheme(merbivore_soft);
+        this.editor.setTheme("ace/theme/merbivore_soft");
         this.session = ace.createEditSession("");
-        // this.session.setMode(Mode);
-        // this.session.setValue(content);
-        // this.session.on("change", (change, session) => save(session.getValue()));
         this.editor.setSession(this.session);
         onMount(this.session);
     }
