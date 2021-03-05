@@ -5,7 +5,7 @@ import Editor from "../components/editor";
 import WindowFrame from "../components/window-frame" ;
 import Layout from '../components/layout';
 import Header from '../components/header';
-
+const {encode } = require('js-base64').Base64;
 var beautify = require('js-beautify').js;
 
 
@@ -175,7 +175,7 @@ ${beautify(listener,{
       <button><a 
         style={{textDecoration:"none", color: "#250D47"}}
         target="_blank"
-        href={`${chrome.runtime.getURL("exploit.html")}?target=${btoa(selectedFrame.attributes.locationHref)}&code=${btoa(code)}`}>open exploit page</a></button>
+        href={`${chrome.runtime.getURL("exploit.html")}?target=${encode(selectedFrame.attributes.locationHref)}&code=${encode(code)}`}>open exploit page</a></button>
     : null;
     return <>
       {
