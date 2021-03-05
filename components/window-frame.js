@@ -1,4 +1,5 @@
 import React from "react";
+const {encode } = require('js-base64').Base64;
 export default class WindowFrame extends React.Component {
     onSelect(e) {
       const { frame, selectFrame,code } = this.props;
@@ -18,7 +19,7 @@ export default class WindowFrame extends React.Component {
       let _children = children.list();
       let fullyInjected = typeof(windowId)==="undefined";
       let extUrl = chrome.runtime.getURL("exploit.html");
-      extUrl = extUrl+`?target=${btoa(locationHref)}&code=${btoa(code)}`
+      extUrl = extUrl+`?target=${encode(locationHref)}&code=${encode(code)}`
       // console.log(messages,children, locationHref, listeners)
       return <div className={`window-frame ${
           fullyInjected ? 'unselectable ':''
