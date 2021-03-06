@@ -11,14 +11,14 @@ function getCompilerConfig() {
             minimize: false,
         },
         entry: {
-            options: join(__dirname, "ui/options.js"),
-            agent: join(__dirname, "src/agent.js"),
-            background: join(__dirname, "src/background.js"),
-            exploit:join(__dirname, "exploit/exploit.js"),
+            main: join(__dirname, "../src/ui/main-page/main.js"),
+            agent: join(__dirname, "../src/extension/agent.js"),
+            background: join(__dirname, "../src/extension/background.js"),
+            exploit:join(__dirname, "../src/ui/exploit-page/exploit.js"),
         },
         output: {
             filename: '[name].js',
-            path: join(__dirname, "chrome-extension"),
+            path: join(__dirname, "../chrome-extension"),
             chunkFilename: '[name].bundle.js',
         },
         module: {
@@ -57,25 +57,21 @@ function getCompilerConfig() {
             extensions: ['*', '.js', '.jsx']
         },
         devtool: 'inline-source-map',
-        // devServer: {
-        //     contentBase: './dist',
-        //     hot: true,
-        // },
         plugins: [
 
             new HtmlWebpackPlugin({
-                chunks: ["options"],
-                template: "ui/options.ejs",
-                filename: 'options.html'
+                chunks: ["main"],
+                template: "src/ui/main-page/main.ejs",
+                filename: 'main.html'
             }),
             new HtmlWebpackPlugin({
                 chunks: ["exploit"],
-                template: "exploit/exploit.ejs",
+                template: "src/ui/exploit-page/exploit.ejs",
                 filename: 'exploit.html'
             }),
             new CopyPlugin({
                 patterns: [
-                  { from: "src/manifest.json" },
+                  { from: "src/extension/manifest.json" },
                   { from: "src/static-files/" }
                 ],
             }),

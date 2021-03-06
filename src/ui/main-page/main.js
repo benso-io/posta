@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "./options.scss"
+import "./main.scss"
 import Editor from "../components/editor";
 import WindowFrame from "../components/window-frame" ;
 import Layout from '../components/layout';
