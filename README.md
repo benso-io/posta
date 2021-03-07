@@ -28,6 +28,10 @@ Run *Posta* in a full development environment with a dedicated browser (Chromium
    ```
 1. Click on the Posta extension to navigate to the UI
 
+Dev mode includes a local web server that serves a small testing site and the exploit page.
+When running in dev mode, you can access the exploit page at http://localhost:8080/exploit/
+
+
 ### Chrome Extension
 
 Run *Posta* as a Chrome / Chromium Extension:
