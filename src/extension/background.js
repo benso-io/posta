@@ -232,7 +232,7 @@ const updateTabs = () => {
             tabsFrames = new Bucket(TabFrame);
             updatedTabs.forEach(({ tabId, frames }) => {
                 let topFrameIndex = frames.findIndex(({parentFrameId})=>parentFrameId===-1);
-                if (typeof(topFrameIndex)==="undefined") return;
+                if (topFrameIndex===-1) return;
                 let [{frameId,url}] = frames.splice(topFrameIndex,1);
                 let tabFrameId = `${tabId}::${frameId}`;
                 let top =  new TabFrame(tabFrameId);
