@@ -5,12 +5,12 @@ const agentFunction = require("./agent-body").toString();
 
 let windowId=uuid();
 window.windowId=windowId;
-var script = document.createElement('script');
+let script = document.createElement('script');
 script.textContent = `window.windowId="${windowId}";(${agentFunction})()`;
 document.documentElement.prepend(script);
 
 chrome.runtime.onMessage.addListener((message, sender)=>{
-    var event = new CustomEvent("posta-relay", { detail: message });
+    let event = new CustomEvent("posta-relay", { detail: message });
     window.dispatchEvent(event);
 })
 

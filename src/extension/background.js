@@ -232,9 +232,10 @@ const updateTabs = () => {
             tabsFrames = new Bucket(TabFrame);
             updatedTabs.forEach(({ tabId, frames }) => {
                 let topFrameIndex = frames.findIndex(({parentFrameId})=>parentFrameId===-1);
-                var [{frameId,url}] = frames.splice(topFrameIndex,1);
+                if (typeof(topFrameIndex)==="undefined") return;
+                let [{frameId,url}] = frames.splice(topFrameIndex,1);
                 let tabFrameId = `${tabId}::${frameId}`;
-                var top =  new TabFrame(tabFrameId);
+                let top =  new TabFrame(tabFrameId);
                 
                 top.set("locationHref", url);
                 windowsByTabAndFrameId.set(tabFrameId,top);

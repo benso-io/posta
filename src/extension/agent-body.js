@@ -6,7 +6,7 @@ module.exports = function agent() {
     const $$$listeners = new Set();
     const uuid = () => {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
     }
@@ -26,7 +26,7 @@ module.exports = function agent() {
 
     const sendToBackgroundPage = (body) => {
         if (!body) return console.trace("no sending without body")
-        var event = new CustomEvent("posta-telemetry", { detail: body });
+        let event = new CustomEvent("posta-telemetry", { detail: body });
         window.dispatchEvent(event);
     }
 
@@ -108,7 +108,7 @@ module.exports = function agent() {
     }
 
     $$$_addEventListener("message", hub);
-    var $$$onmessage;
+    let $$$onmessage;
 
     Object.defineProperties(window, {
         onmessage: {
