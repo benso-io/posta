@@ -5,7 +5,7 @@ const appFactory = require("./tools/app-factory");
 
 const startBrowser = (url) => {
   return new Promise((resolve, reject) => {
-    var args = [
+    let args = [
       `--user-data-dir=.local-files/browser-profile`,
       `--load-extension=${__dirname}/chrome-extension`,
       `--whitelisted-extension-id=dnhcogbojmopnpcnbbpicobacfacdbbk`,

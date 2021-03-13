@@ -6,7 +6,7 @@ import WindowFrame from "../components/window-frame" ;
 import Layout from '../components/layout';
 import Header from '../components/header';
 const {encode } = require('js-base64').Base64;
-var beautify = require('js-beautify').js;
+const beautify = require('js-beautify').js;
 
 
 export default class App extends React.Component {
@@ -97,8 +97,8 @@ ${beautify(listener,{
     const { selectedMessage } = (this.state || {});
     const { windowsByTabAndFrameId ,messagesByMessageId} = this.backgroundPage;
 
-    var messages =[];
-    var listeners= [];
+    let messages =[];
+    let listeners= [];
     
     if (selectedFrame){
       messages = selectedFrame.messages.messages || messages;
@@ -206,8 +206,8 @@ ${beautify(listener,{
     const { tabsFrames,windowsByTabAndFrameId ,messagesByMessageId} = this.backgroundPage;
     let tabList = tabsFrames.list();
     const selectedFrame = typeof(selectedTabFrameId)!=="undefined" ? windowsByTabAndFrameId.get(selectedTabFrameId) : null;
-    var messages =[];
-    var listeners= [];
+    let messages =[];
+    let listeners= [];
     if (selectedFrame){
       messages = selectedFrame.messages.messages || messages;
       listeners = selectedFrame.attributes.listeners || listeners;
