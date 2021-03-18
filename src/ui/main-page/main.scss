@@ -266,6 +266,16 @@ button {
         border-top: 1px solid $purpleMedium;
         .origins{
           padding-bottom:  8px;
+          max-width: calc(100% - 20px);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          >div{
+            // display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
         }
       }
       

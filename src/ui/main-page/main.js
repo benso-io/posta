@@ -173,7 +173,6 @@ ${beautify(listener,{
   renderActions (){
     const { windowsByTabAndFrameId} = this.backgroundPage;
     const { selectedTabFrameId } = (this.state || {});
-    const code = this.editorSession ? this.editorSession.getValue() : "";
     const selectedFrame = typeof(selectedTabFrameId)!=="undefined" ? windowsByTabAndFrameId.get(selectedTabFrameId) : null;
     const { selectedMessage, receiverWindow, senderWindow } = (this.state || {});
     let replayBtn = selectedFrame ? <button onClick={() => this.sendToSelectedFrame()}>Send to selected</button> :
@@ -193,7 +192,7 @@ ${beautify(listener,{
         <strong>To:</strong>
         <span>{receiverWindow.attributes.locationHref}</span>
       </div>
-      </div> :null}
+      </div> :<div style={{height:"38px"}}></div>}
       { selectedFrame ? <div className="message-buttons" >
         {replayBtn}
         {openExploitPageBtn}
@@ -257,18 +256,19 @@ ${beautify(listener,{
         },
         {
           w: 35,
-          h: 85,
-          content: <div style={{ maxHeight: "100%", backgroundColor: "#000000", height: "100%" }}>
+          h: 100,
+          content: <><div style={{ maxHeight: "calc(100% - 120px)", backgroundColor: "#000000", height: "calc(100% - 120px)" }}>
             <Editor style={{ height: "100%", width: "100%" }} onMount={(session) => this.captureEditorSession(session)}></Editor>
           </div>
-        },
-        {
-          w: 35,
-          h: 15,
-          content: <div className="actions">
+          <div style={{ height: "120px", width: "100%" }} className="actions">
             {this.renderActions()}
-          </div>
-        }
+          </div></>
+        },
+        // {
+        //   w: 35,
+        //   h: 15,
+        //   content: 
+        // }
       ]}
     ></Layout>
     </div>
