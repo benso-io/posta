@@ -1,7 +1,6 @@
 module.exports = function agent() {
     console.debug(`agent injected in ${windowId} at ${location.href}`);
 
-    const $$$_onMessage = window.onmessage;
     const $$$_addEventListener = window.addEventListener;
     const $$$listeners = new Set();
     const uuid = () => {
@@ -58,7 +57,7 @@ module.exports = function agent() {
     const hub = (...args) => {
         const [event] = args;
         const { data, origin, source } = event;
-        if (data.isPostaMessage) {
+        if (data && data.isPostaMessage) {
             let { topic } = data;
             switch (topic) {
                 case "account-for-message":
