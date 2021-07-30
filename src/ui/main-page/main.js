@@ -262,7 +262,7 @@ ${beautify(listener, {
 
   
   getFilterValue(filterName){
-    return localStorage.getItem(`filter-${filterName}`).toLowerCase() || ""
+    return (localStorage.getItem(`filter-${filterName}`||"")).toLowerCase() || ""
   }
 
   setFilterValue(filterName, value){
