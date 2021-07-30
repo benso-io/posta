@@ -14,7 +14,7 @@
 
 ### Development Environment
 
-Run *Posta* in a full development environment with a dedicated browser (Chromium):
+Run *Posta* in development environment:
 
 1. Install *Posta*
    ```bash
@@ -22,14 +22,16 @@ Run *Posta* in a full development environment with a dedicated browser (Chromium
    cd posta
    npm install
    ```
-1. Launch the dedicated Chromium session using the following command:
-   ```bash
-   node posta <URL>
-   ```
-1. Click on the Posta extension to navigate to the UI
+2. start devlopment enviroment
+  ```bash
+  npm start
+  ``` 
 
 Dev mode includes a local web server that serves a small testing site and the exploit page.
 When running in dev mode, you can access the exploit page at http://localhost:8080/exploit/
+
+The development environment will rebuild the extension when source code changes. To work on UI, start the development env, make your changes and refresh. Please note that changes to the background page are rebuilt, but will only take effect after the extension restarts (from browser menu)
+
 
 
 ### Chrome Extension
