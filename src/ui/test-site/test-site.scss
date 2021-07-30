@@ -1,0 +1,23 @@
+
+@import "../common.scss";
+
+.content>div {
+  height: 100%;
+  span {
+    line-height: 30px;
+    padding-left: 8px;
+    
+  }
+}
+
+.iframe{
+  padding-left: 8px;
+  padding-right: 8px;
+  height: calc(100% - 40px);
+  iframe {
+    border: 1px solid $frameHighlightColor;
+    width: 100%;
+    height: 100%;
+  }
+}
+
