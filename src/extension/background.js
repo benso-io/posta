@@ -1,27 +1,34 @@
-const handlers = new Set();
+// let handlers = new Set();
+let uiUpdateHandler;
 
 chrome.browserAction.onClicked.addListener(()=>{
     chrome.runtime.openOptionsPage();
 })
 
 $$$SubScribeToPosta = (handler) => {
-    console.log("new subscription from options page")
-    handlers.add(handler);
+    handler("info","new subscription from options page");
+    windowsByTabAndFrameId = new Bucket(TabFrame);
+    messagesByMessageId  = new Bucket(Item);
+    messageByTabFrameId  = new Bucket(MessagesBucket);
+    tabsFrames = new Bucket(TabFrame);
+    uiUpdateHandler = handler;
 }
 
-var timer;
+// var timer;
 
-function refreshOptionsPage() {
-    clearTimeout(timer)
-    timer = setTimeout(()=>{
-        try {
-            Array.from(handlers).forEach(h => h())
-        } catch (error) {
-            console.log(error)
-        }
-    },100)
+// function refreshOptionsPage() {
+//     clearTimeout(timer)
+//     timer = setTimeout(()=>{
+//         try {
+//             // uiUpdateHandler();
+//             // Array.from(handlers).forEach(h => h())
+//         } catch (error) {
+//             console.log(error)
+//         }
+//     },1000)
     
-}
+// }
+
 
 
 class Bucket {
@@ -59,7 +66,7 @@ class Item {
     touch(modify) {
         this._json = modify ? undefined : this._json;
         this.lastSeen = Date.now();
-        if (modify) refreshOptionsPage();
+        // if (modify) refreshOptionsPage();
     }
     set(key, value) {
         this.touch(this.attributes[key] !== value);
@@ -138,7 +145,7 @@ class MessagesBucket extends Item {
         this.messages.messages = this.messages.messages.slice(0, 100);//to avoid denial of service
         this.messages.messages = Array.from(this.messages.messages)
         this.touch(true)
-        refreshOptionsPage()
+        // refreshOptionsPage()
 
     }
 
@@ -157,15 +164,20 @@ messageByTabFrameId  = new Bucket(MessagesBucket);
 
 tabsFrames = new Bucket(TabFrame);
 
+
 const receivedMessage = ({ messageId, data, origin },tabId, frameId) => {
+    
     let tabWindowId = `${tabId}::${frameId}`;
     messageByTabFrameId.add(tabWindowId)
         .addMessage(messageId,"received")
     
+    uiUpdateHandler("info",`new message from ${origin}`, JSON.stringify(data))
+    
     messagesByMessageId.add(messageId)
         .set("receiver", tabWindowId)
         .set("origin",origin)
-        .set("data", data);
+        .set("data", data)
+        .set("originalType", typeof(data));
 }
 
 const accountForMessage = ({ messageId },tabId, frameId) => {
