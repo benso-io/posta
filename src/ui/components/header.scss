@@ -1,0 +1,51 @@
+@import "../common.scss";
+
+.head {
+    height:58px;
+    line-height: 58px;
+    border-bottom: 2px solid $purple;
+    display: flex;
+    align-items: center;
+    .name {
+      color: $purple;
+      font-size: 18px;
+      margin-right: 112px;
+    }
+    .ref {
+      color:$purple;
+      flex-grow: 1;
+      text-align: right;
+      margin-right: 48px;
+      a {
+        text-decoration: none; 
+      }
+    }
+    // span {
+    //   vertical-align: middle;
+    // }
+    
+    img {
+      margin-left:48px;
+      // margin-top: 20px;
+      margin-right: 16px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+  .title {
+    font-size: 18px;
+    padding-bottom: 8px;
+    line-height: 28px;
+    display: flex;
+    input {
+      flex-grow: 1;
+      margin-left: 8px;
+      border: none;
+      padding-left: 4px;
+    }
+    // color: #501D98;
+    // font-family: Saira;
+    &.light {
+      color: $veryLightPurple;
+    }
+  }
