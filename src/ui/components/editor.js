@@ -7,6 +7,9 @@ ace.config.setModuleUrl('ace/mode/json', require('file-loader?name=ace-[name].[e
 ace.config.setModuleUrl('ace/theme/merbivore_soft', require('file-loader?name=ace-[name].[ext]&esModule=false!ace-builds/src-noconflict/theme-merbivore_soft.js'))
 ace.config.setModuleUrl('ace/mode/javascript_worker', require('file-loader?name=ace-[name].[ext]&esModule=false!ace-builds/src-noconflict/worker-javascript.js'))
 ace.config.setModuleUrl('ace/mode/json_worker', require('file-loader?name=ace-[name].[ext]&esModule=false!ace-builds/src-noconflict/worker-json.js'))
+ace.config.setModuleUrl('ace/mode/', require('file-loader?name=ace-[name].[ext]&esModule=false!ace-builds/src-noconflict/worker-json.js'))
+ace.config.setModuleUrl('ace/ext/searchbox', require('file-loader?name=ace-[name].[ext]&esModule=false!ace-builds/src-noconflict/ext-searchbox.js'))
+
 export default class Editor extends React.Component {
     constructor() {
         super()
