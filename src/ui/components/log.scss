@@ -1,0 +1,126 @@
+
+$padd: 0px;
+$frameHighlightColor: #7B61FF;
+$darkBlue: #250D47;
+$veryLightPurple: #F3EBFE;
+$purpleMedium: #C5A4F8;
+$backgroundGrey: #EEEEF6;
+$purple: #501D98;
+$gray: #888;
+
+.papers {
+    color: $veryLightPurple;
+    font-size: 12px;
+    background-color: #222;
+    
+    border-radius: 4px;
+    border-top: 2px solid $purpleMedium;
+    padding: 8px;
+    max-height: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+  
+  
+    .done {
+      &.successful {
+        .title-source::after {
+          margin-left: 8px;
+          font-size: 1.1em;
+          color: #20c20e;
+          content: "Successful!";
+        //  color: ; 
+        }
+      }
+      &.error {
+        .title-source{
+          color: #ff7070;
+          &::after {
+          margin-left: 8px;
+          font-size: 1.1em;
+          color: #ff7070;
+          content: "fail!";
+          
+        }}
+      }
+    }
+    
+  
+    .warn {
+      color: yellow; 
+    }
+  
+    > * {
+      max-width: calc(100% - 4px);
+      overflow-x: hidden;
+      > span {
+        display: inline-block;
+        vertical-align: top;
+      }
+      [level] {
+        display: inline-block;
+        width: 50px;
+      }
+      [level="info"] {
+        color: $purpleMedium;
+      }
+      
+      [level="error"] {
+        color: #ff7070;
+      }
+  
+      [level="warn"] {
+        color: yellow;
+      }
+      
+  
+      [level="debug"] {
+        color: $veryLightPurple;
+      }
+      .update {
+        color: #ff7070;
+      }
+  
+      .ts {
+        color: $gray;
+        &.done .error {
+          color: #ff7070;
+        }
+        &.pending {
+          animation: blink 0.5s infinite;
+        }
+        padding: 0 8px;
+      }
+      .stack {
+        margin-left: 58px;
+        overflow-x: hidden;
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+        color: #ff7070;
+        overflow-y: hidden;
+  
+        &.done {
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          overflow-wrap: normal;
+          color: $gray;
+          // color: $veryLightPurple;
+        }
+      }
+      .stack {
+        color: $gray;
+      }
+    }
+  }
+  
+  @keyframes blink {
+    0% {
+      color: #ff7070;
+    }
+    50% {
+      color: $veryLightPurple;
+    }
+    100% {
+      color: #ff7070;
+    }
+  }
